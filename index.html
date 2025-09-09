@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 코드 리뷰 봇 비교 분석: Gemini vs. CodeRabbit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: The application is designed as a single-page dashboard for a direct, side-by-side comparison of two AI code review bots. The structure includes: 1) A header and introduction for context. 2) A two-column layout comparing the bots on their PR summaries and detailed feedback. 3) An interactive filtering system for the detailed feedback to allow users to focus on specific review categories (e.g., Performance, Style). 4) A quantitative analysis section with a radar chart for a quick, visual summary of strengths and weaknesses across multiple criteria. 5) A concluding summary offering a final verdict. This structure was chosen because it facilitates direct comparison, allows for both high-level and in-depth analysis, and makes the complex information easily digestible for a technical audience making a tooling decision. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: PR Summary from each bot -> Goal: Compare -> Viz/Method: Side-by-side text blocks -> Interaction: None -> Justification: Allows for direct reading and comparison of summarization styles and completeness -> Library/Method: HTML/Tailwind.
+        - Report Info: Detailed code review comments -> Goal: Organize/Compare -> Viz/Method: Categorized & filterable lists in columns -> Interaction: Users click category buttons to toggle visibility of related review points -> Justification: Prevents information overload and helps users compare bot feedback on specific aspects like performance or security -> Library/Method: HTML/JS.
+        - Report Info: Overall bot capabilities synthesized from all comments -> Goal: Compare -> Viz/Method: Radar Chart -> Interaction: Hover tooltips for score details -> Justification: Provides a multi-dimensional quantitative summary that makes the strengths/weaknesses of each bot immediately apparent -> Library/Method: Chart.js/Canvas.
+        - Report Info: Unique bot features (e.g., poems, auto-PRs) -> Goal: Inform -> Viz/Method: Styled info cards/badges -> Interaction: None -> Justification: Clearly highlights value-added features that differentiate the bots -> Library/Method: HTML/Tailwind.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background-color: #FDFBF8; /* Warm neutral background */
+            color: #403D39;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 50vh;
+            max-height: 500px;
+        }
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+        .tag-performance { background-color: #DBEAFE; color: #1E40AF; }
+        .tag-style { background-color: #D1FAE5; color: #065F46; }
+        .tag-maintainability { background-color: #FEF3C7; color: #92400E; }
+        .tag-security { background-color: #FEE2E2; color: #991B1B; }
+        .tag-feature { background-color: #E0E7FF; color: #3730A3; }
+        .filter-btn.active {
+            background-color: #A45C40;
+            color: #FFFFFF;
+        }
+        .filter-btn {
+            transition: all 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto p-4 sm:p-6 md:p-8">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold text-[#252422] mb-2">AI 코드 리뷰 봇 비교 분석</h1>
+            <h2 class="text-xl md:text-2xl text-[#A45C40]">Gemini Code Assist vs. CodeRabbit</h2>
+            <p class="mt-4 max-w-3xl mx-auto text-lg text-[#6B7280]">
+                동일한 Django REST Framework Pull Request에 대한 두 AI 코드 리뷰 봇의 피드백을 심층 비교하여 각 툴의 장단점과 특징을 분석합니다.
+            </p>
+        </header>
+
+        <main>
+            <!-- PR Summary Section -->
+            <section id="summary" class="mb-12">
+                <h3 class="text-2xl font-bold text-center mb-8 text-[#252422]">PR 요약 비교</h3>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200/50">
+                        <h4 class="text-xl font-semibold mb-3 text-center text-[#403D39]">🚀 Gemini Code Assist 요약</h4>
+                        <p class="text-gray-600 leading-relaxed">
+                            Django 프로젝트에 게시글과 댓글 기능을 위한 RESTful API를 추가합니다. 데이터 모델 정의부터 API 엔드포인트, 시리얼라이저, 그리고 견고한 테스트 스위트까지 포함하여 백엔드 기능을 확장합니다. 이를 통해 사용자들은 게시글을 생성, 조회, 수정, 삭제하고 댓글을 달 수 있게 됩니다.
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200/50">
+                        <h4 class="text-xl font-semibold mb-3 text-center text-[#403D39]">🐇 CodeRabbit 요약</h4>
+                        <p class="text-gray-600 leading-relaxed">
+                            신기능으로 공개 API(/api/posts/, /api/comments/ 등)를 제공하며, 게시글/댓글 CRUD 및 작성자 기준 권한을 적용합니다. 게시글 목록에 댓글 수를 표시하고, 상세 조회 시 댓글 목록을 포함합니다. 제목/내용 유효성 검사 및 한국어 오류 메시지를 지원합니다.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Detailed Review Section -->
+            <section id="detailed-review" class="mb-12">
+                <h3 class="text-2xl font-bold text-center mb-4 text-[#252422]">상세 리뷰 포인트 비교</h3>
+                <div class="flex justify-center items-center gap-2 mb-8 flex-wrap" id="filter-container">
+                    <button class="filter-btn active bg-gray-200 text-gray-700 py-2 px-4 rounded-full" data-filter="all">전체</button>
+                    <button class="filter-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-full" data-filter="performance">성능</button>
+                    <button class="filter-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-full" data-filter="style">스타일</button>
+                    <button class="filter-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-full" data-filter="maintainability">유지보수성</button>
+                    <button class="filter-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-full" data-filter="security">보안</button>
+                    <button class="filter-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-full" data-filter="feature">부가 기능</button>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Gemini Column -->
+                    <div class="flex flex-col gap-4">
+                        <h4 class="text-xl font-semibold text-center text-[#403D39]">Gemini Code Assist 리뷰</h4>
+                        <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="performance">
+                            <span class="tag tag-performance">성능</span>
+                            <p class="mt-2 text-gray-700">SerializerMethodField에서 발생하는 <strong>N+1 쿼리 문제</strong>를 지적하고, View에서 `annotate`를 사용한 최적화 방안 제시.</p>
+                        </div>
+                        <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="performance">
+                            <span class="tag tag-performance">성능</span>
+                            <p class="mt-2 text-gray-700">상세 조회 시 중첩된 Serializer에서 발생하는 N+1 문제를 지적하며 `prefetch_related` 사용 제안.</p>
+                        </div>
+                        <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="performance">
+                            <span class="tag tag-performance">성능</span>
+                            <p class="mt-2 text-gray-700">댓글 목록 조회 시 각 댓글의 작성자 정보를 가져오는 과정에서 발생하는 N+1 문제를 지적하며 `select_related` 사용 제안.</p>
+                        </div>
+                         <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="style">
+                            <span class="tag tag-style">스타일</span>
+                            <p class="mt-2 text-gray-700">팀 코드 컨벤션을 근거로 모델 필드 주석 및 타입 힌트 누락 지적.</p>
+                        </div>
+                        <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="style">
+                            <span class="tag tag-style">스타일</span>
+                            <p class="mt-2 text-gray-700">'매직 넘버' 사용을 지적하며 상수로 관리할 것을 제안.</p>
+                        </div>
+                         <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="style">
+                            <span class="tag tag-style">스타일</span>
+                            <p class="mt-2 text-gray-700">Docstring 누락을 지적하며 코드 가독성 및 유지보수성 향상 제안.</p>
+                        </div>
+                        <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="maintainability">
+                            <span class="tag tag-maintainability">유지보수성</span>
+                            <p class="mt-2 text-gray-700">`related_name` 중복 가능성을 지적하고 더 명시적인 이름 사용 권장.</p>
+                        </div>
+                        <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="maintainability">
+                            <span class="tag tag-maintainability">유지보수성</span>
+                            <p class="mt-2 text-gray-700">FBV와 CBV가 혼용된 것을 지적하며 일관성을 위해 CBV로의 리팩토링 제안.</p>
+                        </div>
+                         <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="maintainability">
+                            <span class="tag tag-maintainability">유지보수성</span>
+                            <p class="mt-2 text-gray-700">테스트 코드의 하드코딩된 URL을 `reverse()` 함수로 대체 제안.</p>
+                        </div>
+                    </div>
+
+                    <!-- CodeRabbit Column -->
+                    <div class="flex flex-col gap-4">
+                        <h4 class="text-xl font-semibold text-center text-[#403D39]">CodeRabbit 리뷰</h4>
+                        <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="performance">
+                            <span class="tag tag-performance">성능</span>
+                            <p class="mt-2 text-gray-700">Gemini와 동일하게 `comments_count`의 <strong>N+1 쿼리 문제</strong>를 지적하고 `annotate` 사용을 제안하며 구체적인 코드 수정안 제공.</p>
+                        </div>
+                        <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="performance">
+                            <span class="tag tag-performance">성능</span>
+                            <p class="mt-2 text-gray-700">Post 목록 조회 시 `select_related('author')`와 `annotate`를 동시에 사용하여 쿼리 최적화 제안.</p>
+                        </div>
+                        <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="performance">
+                            <span class="tag tag-performance">성능</span>
+                            <p class="mt-2 text-gray-700">Post 상세 조회 시 `select_related`와 `prefetch_related`를 함께 사용하여 중첩된 데이터까지 최적화 제안.</p>
+                        </div>
+                        <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="security">
+                            <span class="tag tag-security">보안</span>
+                            <p class="mt-2 text-gray-700">UserSerializer에서 이메일 필드를 노출하는 <strong>개인정보(PII) 유출 가능성</strong>을 지적하고 필드 제거를 권고.</p>
+                        </div>
+                         <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="style">
+                            <span class="tag tag-style">스타일</span>
+                            <p class="mt-2 text-gray-700">직접적인 `User` 모델 참조 대신 `settings.AUTH_USER_MODEL` 사용으로 일관성 확보 제안.</p>
+                        </div>
+                        <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="feature">
+                            <span class="tag tag-feature">부가 기능</span>
+                            <p class="mt-2 text-gray-700">PR 변경사항에 대한 <strong>시퀀스 다이어그램</strong>을 자동으로 생성하여 시각적인 이해를 도움.</p>
+                        </div>
+                        <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="feature">
+                            <span class="tag tag-feature">부가 기능</span>
+                            <p class="mt-2 text-gray-700">리뷰 내용과 관련된 <strong>짧은 시(Poem)</strong>를 생성하여 재미와 감성을 더함.</p>
+                        </div>
+                        <div class="review-item bg-white rounded-xl shadow-md p-5 border border-gray-200/50" data-category="feature">
+                            <span class="tag tag-feature">부가 기능</span>
+                            <p class="mt-2 text-gray-700">누락된 Docstring을 보충하고, 유닛 테스트를 <strong>자동으로 생성하여 새로운 PR을 제안</strong>하는 강력한 기능 제공.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quantitative Analysis Section -->
+            <section id="analysis" class="mb-12 bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200/50">
+                <h3 class="text-2xl font-bold text-center mb-6 text-[#252422]">정량적 비교 분석</h3>
+                <p class="text-center text-gray-600 mb-8 max-w-2xl mx-auto">
+                    각 봇의 리뷰 내용을 바탕으로 6가지 핵심 영역에 대해 점수를 매겨 시각적으로 비교했습니다. (5점 만점)
+                </p>
+                <div class="chart-container">
+                    <canvas id="reviewRadarChart"></canvas>
+                </div>
+            </section>
+            
+            <!-- Conclusion Section -->
+            <section id="conclusion">
+                <h3 class="text-2xl font-bold text-center mb-6 text-[#252422]">최종 분석 및 결론</h3>
+                <div class="grid md:grid-cols-2 gap-8">
+                     <div class="bg-gray-50 rounded-xl p-6 border border-gray-200/50">
+                        <h4 class="text-xl font-semibold mb-3 text-[#403D39]">🚀 Gemini Code Assist: "꼼꼼한 아키텍트"</h4>
+                        <ul class="list-disc list-inside space-y-2 text-gray-700">
+                            <li><strong>강점:</strong> 코드의 구조적 문제, 일관성, 스타일 가이드 준수 등 소프트웨어 아키텍처 관점의 리뷰에 강합니다. N+1 쿼리 문제를 체계적으로 찾아내고, 유지보수성을 해치는 요소를 정확히 지적합니다.</li>
+                            <li><strong>약점:</strong> 보안 관련 지적(PII)이 누락되었고, CodeRabbit과 같은 자동 코드 생성 등의 부가 기능은 부족합니다.</li>
+                            <li><strong>추천 대상:</strong> 코드 품질과 유지보수성, 일관성 있는 아키텍처를 중요하게 생각하는 팀.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-200/50">
+                        <h4 class="text-xl font-semibold mb-3 text-[#403D39]">🐇 CodeRabbit: "생산성 부스터"</h4>
+                        <ul class="list-disc list-inside space-y-2 text-gray-700">
+                            <li><strong>강점:</strong> 성능 최적화와 더불어 보안 취약점(PII)까지 탐지합니다. 무엇보다 Docstring, 유닛 테스트 자동 생성 및 PR 제출 기능은 개발자의 생산성을 극적으로 향상시킬 수 있는 강력한 무기입니다.</li>
+                            <li><strong>약점:</strong> Gemini에 비해 코드의 전반적인 구조나 스타일 가이드 준수에 대한 지적은 상대적으로 적었습니다.</li>
+                            <li><strong>추천 대상:</strong> 빠른 개발 속도와 높은 테스트 커버리지를 동시에 추구하며, 자동화된 워크플로우를 선호하는 팀.</li>
+                        </ul>
+                    </div>
+                </div>
+                 <div class="mt-8 bg-[#A45C40] text-white rounded-2xl p-6 text-center shadow-xl">
+                    <h4 class="text-xl font-bold mb-2">결론</h4>
+                    <p class="leading-relaxed">두 도구 모두 N+1 쿼리 문제를 정확히 탐지하는 등 뛰어난 성능을 보여주었습니다. <strong>Gemini</strong>는 코드의 '품질'과 '구조'에 집중하는 반면, <strong>CodeRabbit</strong>은 '보안'과 '자동화'를 통한 생산성 향상에 더 큰 강점을 보입니다. 프로젝트의 우선순위(코드 품질 vs 개발 속도)에 따라 적합한 도구를 선택하거나, 두 도구를 상호 보완적으로 사용하는 것이 최상의 결과를 만들 수 있습니다.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Filter logic
+            const filterContainer = document.getElementById('filter-container');
+            const reviewItems = document.querySelectorAll('.review-item');
+
+            filterContainer.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    const filter = e.target.dataset.filter;
+                    
+                    // Update active button
+                    filterContainer.querySelector('.active').classList.remove('active');
+                    e.target.classList.add('active');
+
+                    // Filter items
+                    reviewItems.forEach(item => {
+                        if (filter === 'all' || item.dataset.category === filter) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                }
+            });
+
+            // Chart.js Radar Chart
+            const ctx = document.getElementById('reviewRadarChart').getContext('2d');
+            const data = {
+                labels: ['성능 최적화', '코드 스타일/컨벤션', '보안', '유지보수성', '부가 기능', '가독성/명확성'],
+                datasets: [
+                    {
+                        label: 'Gemini Code Assist',
+                        data: [5, 5, 1, 5, 2, 4],
+                        backgroundColor: 'rgba(164, 92, 64, 0.2)',
+                        borderColor: 'rgba(164, 92, 64, 1)',
+                        pointBackgroundColor: 'rgba(164, 92, 64, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(164, 92, 64, 1)',
+                    },
+                    {
+                        label: 'CodeRabbit',
+                        data: [5, 3, 5, 4, 5, 4],
+                        backgroundColor: 'rgba(64, 61, 57, 0.2)',
+                        borderColor: 'rgba(64, 61, 57, 1)',
+                        pointBackgroundColor: 'rgba(64, 61, 57, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(64, 61, 57, 1)',
+                    }
+                ]
+            };
+
+            const config = {
+                type: 'radar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 14,
+                                    family: "'Inter', 'Noto Sans KR', sans-serif"
+                                },
+                                color: '#403D39'
+                            },
+                            ticks: {
+                                backdropColor: '#FDFBF8',
+                                color: '#6B7280',
+                                stepSize: 1,
+                                max: 5,
+                                min: 0
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                             labels: {
+                                font: {
+                                    size: 14,
+                                    family: "'Inter', 'Noto Sans KR', sans-serif"
+                                }
+                            }
+                        },
+                        tooltip: {
+                             callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.r !== null) {
+                                        label += context.parsed.r + '점';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            new Chart(ctx, config);
+        });
+    </script>
+</body>
+</html>
+
