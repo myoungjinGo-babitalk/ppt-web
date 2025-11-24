@@ -258,6 +258,20 @@
             color: #999;
             margin-top: 5px;
         }
+
+        .score-basis {
+            font-size: 12px;
+            color: #667eea;
+            margin-top: 5px;
+            padding: 8px 12px;
+            background: #f0f3ff;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .score-basis strong {
+            color: #5568d3;
+        }
     </style>
 </head>
 <body>
@@ -334,17 +348,28 @@
         <div id="result" class="result">
             <div class="result-title">📈 평가 결과</div>
             
-            <div class="score-item">
-                <span class="score-label">볼륨 점수 (30%)</span>
-                <span class="score-value" id="volumeScore">-</span>
+            <div>
+                <div class="score-item">
+                    <span class="score-label">볼륨 점수 (30%)</span>
+                    <span class="score-value" id="volumeScore">-</span>
+                </div>
+                <div class="score-basis" id="volumeBasis"></div>
             </div>
-            <div class="score-item">
-                <span class="score-label">완성도 점수 (30%)</span>
-                <span class="score-value" id="qualityScore">-</span>
+
+            <div>
+                <div class="score-item">
+                    <span class="score-label">완성도 점수 (30%)</span>
+                    <span class="score-value" id="qualityScore">-</span>
+                </div>
+                <div class="score-basis" id="qualityBasis"></div>
             </div>
-            <div class="score-item">
-                <span class="score-label">배포 점수 (40%)</span>
-                <span class="score-value" id="deployScore">-</span>
+
+            <div>
+                <div class="score-item">
+                    <span class="score-label">배포 점수 (40%)</span>
+                    <span class="score-value" id="deployScore">-</span>
+                </div>
+                <div class="score-basis" id="deployBasis"></div>
             </div>
 
             <div class="final-score">
@@ -367,48 +392,105 @@
 
             // 볼륨 점수 계산
             const spPerMonth = sp / months;
-            let volumeScore;
-            if (spPerMonth < 9) volumeScore = 1;
-            else if (spPerMonth < 12) volumeScore = 1;
-            else if (spPerMonth < 15) volumeScore = 2;
-            else if (spPerMonth < 18) volumeScore = 3;
-            else if (spPerMonth < 20) volumeScore = 4;
-            else volumeScore = 5;
+            let volumeScore, volumeRange;
+            if (spPerMonth < 9) {
+                volumeScore = 1;
+                volumeRange = '9 미만';
+            } else if (spPerMonth < 12) {
+                volumeScore = 1;
+                volumeRange = '9-12';
+            } else if (spPerMonth < 15) {
+                volumeScore = 2;
+                volumeRange = '12-15';
+            } else if (spPerMonth < 18) {
+                volumeScore = 3;
+                volumeRange = '15-18';
+            } else if (spPerMonth < 20) {
+                volumeScore = 4;
+                volumeRange = '18-20';
+            } else {
+                volumeScore = 5;
+                volumeRange = '20 이상';
+            }
 
             // 완성도 점수 계산 (버그율)
             const bugRate = (bugs / sp) * 100;
-            let qualityScore;
-            
+            let qualityScore, qualityRange;
+
             if (level === 'senior') {
-                if (bugRate <= 10) qualityScore = 5;
-                else if (bugRate <= 19) qualityScore = 4;
-                else if (bugRate <= 29) qualityScore = 3;
-                else if (bugRate <= 39) qualityScore = 2;
-                else qualityScore = 1;
+                if (bugRate <= 10) {
+                    qualityScore = 5;
+                    qualityRange = '10% 이하';
+                } else if (bugRate <= 19) {
+                    qualityScore = 4;
+                    qualityRange = '11-19%';
+                } else if (bugRate <= 29) {
+                    qualityScore = 3;
+                    qualityRange = '20-29%';
+                } else if (bugRate <= 39) {
+                    qualityScore = 2;
+                    qualityRange = '30-39%';
+                } else {
+                    qualityScore = 1;
+                    qualityRange = '40% 이상';
+                }
             } else { // middle
-                if (bugRate <= 20) qualityScore = 5;
-                else if (bugRate <= 29) qualityScore = 4;
-                else if (bugRate <= 39) qualityScore = 3;
-                else if (bugRate <= 49) qualityScore = 2;
-                else qualityScore = 1;
+                if (bugRate <= 20) {
+                    qualityScore = 5;
+                    qualityRange = '20% 이하';
+                } else if (bugRate <= 29) {
+                    qualityScore = 4;
+                    qualityRange = '21-29%';
+                } else if (bugRate <= 39) {
+                    qualityScore = 3;
+                    qualityRange = '30-39%';
+                } else if (bugRate <= 49) {
+                    qualityScore = 2;
+                    qualityRange = '40-49%';
+                } else {
+                    qualityScore = 1;
+                    qualityRange = '50% 이상';
+                }
             }
 
             // 배포 점수 계산 (핫픽스율)
             const hotfixRate = (hotfixes / sp) * 100;
-            let deployScore;
-            
+            let deployScore, deployRange;
+
             if (level === 'senior') {
-                if (hotfixRate <= 1) deployScore = 5;
-                else if (hotfixRate <= 2) deployScore = 4;
-                else if (hotfixRate <= 3) deployScore = 3;
-                else if (hotfixRate <= 4) deployScore = 2;
-                else deployScore = 1;
+                if (hotfixRate <= 1) {
+                    deployScore = 5;
+                    deployRange = '1% 이하';
+                } else if (hotfixRate <= 2) {
+                    deployScore = 4;
+                    deployRange = '1-2%';
+                } else if (hotfixRate <= 3) {
+                    deployScore = 3;
+                    deployRange = '2-3%';
+                } else if (hotfixRate <= 4) {
+                    deployScore = 2;
+                    deployRange = '3-4%';
+                } else {
+                    deployScore = 1;
+                    deployRange = '4% 이상';
+                }
             } else { // middle
-                if (hotfixRate <= 3) deployScore = 5;
-                else if (hotfixRate <= 4) deployScore = 4;
-                else if (hotfixRate <= 5) deployScore = 3;
-                else if (hotfixRate <= 6) deployScore = 2;
-                else deployScore = 1;
+                if (hotfixRate <= 3) {
+                    deployScore = 5;
+                    deployRange = '3% 이하';
+                } else if (hotfixRate <= 4) {
+                    deployScore = 4;
+                    deployRange = '3-4%';
+                } else if (hotfixRate <= 5) {
+                    deployScore = 3;
+                    deployRange = '4-5%';
+                } else if (hotfixRate <= 6) {
+                    deployScore = 2;
+                    deployRange = '5-6%';
+                } else {
+                    deployScore = 1;
+                    deployRange = '6% 이상';
+                }
             }
 
             // 최종 점수 계산
@@ -422,12 +504,21 @@
             else level_text = '❌ 개선 필요';
 
             // 결과 표시
-            document.getElementById('volumeScore').textContent = 
+            document.getElementById('volumeScore').textContent =
                 `${volumeScore}점 (SP/월: ${spPerMonth.toFixed(1)})`;
-            document.getElementById('qualityScore').textContent = 
+            document.getElementById('volumeBasis').innerHTML =
+                `<strong>판정 근거:</strong> ${volumeRange} SP/월 → ${volumeScore}점`;
+
+            document.getElementById('qualityScore').textContent =
                 `${qualityScore}점 (버그율: ${bugRate.toFixed(1)}%)`;
-            document.getElementById('deployScore').textContent = 
+            document.getElementById('qualityBasis').innerHTML =
+                `<strong>판정 근거:</strong> ${level === 'senior' ? '시니어' : '미들'} 기준 버그율 ${qualityRange} → ${qualityScore}점`;
+
+            document.getElementById('deployScore').textContent =
                 `${deployScore}점 (핫픽스율: ${hotfixRate.toFixed(1)}%)`;
+            document.getElementById('deployBasis').innerHTML =
+                `<strong>판정 근거:</strong> ${level === 'senior' ? '시니어' : '미들'} 기준 핫픽스율 ${deployRange} → ${deployScore}점`;
+
             document.getElementById('finalScore').textContent = finalScore.toFixed(1);
             document.getElementById('finalLevel').textContent = level_text;
 
