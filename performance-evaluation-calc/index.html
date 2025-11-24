@@ -272,6 +272,41 @@
         .score-basis strong {
             color: #5568d3;
         }
+
+        .copy-btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 20px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .copy-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .copy-btn:active {
+            transform: translateY(0);
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
     </style>
 </head>
 <body>
@@ -377,10 +412,17 @@
                 <div class="final-score-value" id="finalScore">-</div>
                 <div class="final-score-level" id="finalLevel">-</div>
             </div>
+
+            <button class="copy-btn" id="copyBtn" onclick="copyResults()">
+                📋 결과 복사하기
+            </button>
         </div>
     </div>
 
     <script>
+        // 계산 결과 저장용 변수
+        let calculationResult = null;
+
         document.getElementById('calculatorForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -522,11 +564,64 @@
             document.getElementById('finalScore').textContent = finalScore.toFixed(1);
             document.getElementById('finalLevel').textContent = level_text;
 
+            // 결과 데이터 저장
+            calculationResult = {
+                level: level === 'senior' ? '시니어 (Lv4~)' : '미들 (~Lv3)',
+                volumeScore,
+                volumeRange,
+                spPerMonth: spPerMonth.toFixed(1),
+                qualityScore,
+                qualityRange,
+                bugRate: bugRate.toFixed(1),
+                deployScore,
+                deployRange,
+                hotfixRate: hotfixRate.toFixed(1),
+                finalScore: finalScore.toFixed(1),
+                level_text,
+                levelGroup: level === 'senior' ? '시니어' : '미들'
+            };
+
             // 결과 영역 표시
             const resultDiv = document.getElementById('result');
             resultDiv.classList.add('show');
             resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         });
+
+        // 결과 복사 함수
+        function copyResults() {
+            if (!calculationResult) return;
+
+            const text = `📊 개발자 성과 평가 결과
+연차 그룹: ${calculationResult.level}
+
+볼륨 점수 (30%): ${calculationResult.volumeScore}점 (SP/월: ${calculationResult.spPerMonth})
+- 판정 근거: ${calculationResult.volumeRange} SP/월 → ${calculationResult.volumeScore}점
+
+완성도 점수 (30%): ${calculationResult.qualityScore}점 (버그율: ${calculationResult.bugRate}%)
+- 판정 근거: ${calculationResult.levelGroup} 기준 버그율 ${calculationResult.qualityRange} → ${calculationResult.qualityScore}점
+
+배포 점수 (40%): ${calculationResult.deployScore}점 (핫픽스율: ${calculationResult.hotfixRate}%)
+- 판정 근거: ${calculationResult.levelGroup} 기준 핫픽스율 ${calculationResult.deployRange} → ${calculationResult.deployScore}점
+
+최종 점수: ${calculationResult.finalScore}점
+평가 등급: ${calculationResult.level_text}`;
+
+            // 클립보드에 복사
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ 복사 완료!';
+                btn.classList.add('copied');
+
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                alert('복사에 실패했습니다. 다시 시도해주세요.');
+                console.error('복사 실패:', err);
+            });
+        }
     </script>
 </body>
 </html>
