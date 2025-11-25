@@ -535,10 +535,11 @@
                 }
             }
 
-            // 최종 점수 계산
-            const finalScore = (volumeScore * 0.3) + (qualityScore * 0.3) + (deployScore * 0.4);
-            
-            // 평가 등급
+            // 최종 점수 계산 후 반올림
+            const rawScore = (volumeScore * 0.3) + (qualityScore * 0.3) + (deployScore * 0.4);
+            const finalScore = Math.round(rawScore);
+
+            // 반올림된 점수로 평가 등급 판정
             let level_text;
             if (finalScore >= 4.0) level_text = '🌟 기대 이상';
             else if (finalScore >= 3.0) level_text = '✅ 기대 충족';
@@ -561,7 +562,7 @@
             document.getElementById('deployBasis').innerHTML =
                 `<strong>판정 근거:</strong> ${level === 'senior' ? '시니어' : '미들'} 기준 핫픽스율 ${deployRange} → ${deployScore}점`;
 
-            document.getElementById('finalScore').textContent = Math.round(finalScore);
+            document.getElementById('finalScore').textContent = finalScore;
             document.getElementById('finalLevel').textContent = level_text;
 
             // 결과 데이터 저장
@@ -576,7 +577,7 @@
                 deployScore,
                 deployRange,
                 hotfixRate: hotfixRate.toFixed(1),
-                finalScore: Math.round(finalScore),
+                finalScore: finalScore,
                 level_text,
                 levelGroup: level === 'senior' ? '시니어' : '미들'
             };
