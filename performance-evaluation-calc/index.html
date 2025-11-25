@@ -577,6 +577,7 @@
                 deployScore,
                 deployRange,
                 hotfixRate: hotfixRate.toFixed(1),
+                rawScore: rawScore.toFixed(2),
                 finalScore: finalScore,
                 level_text,
                 levelGroup: level === 'senior' ? '시니어' : '미들'
@@ -604,7 +605,7 @@
 배포 점수 (40%): ${calculationResult.deployScore}점 (핫픽스율: ${calculationResult.hotfixRate}%)
 - 판정 근거: ${calculationResult.levelGroup} 기준 핫픽스율 ${calculationResult.deployRange} → ${calculationResult.deployScore}점
 
-최종 점수: ${calculationResult.finalScore}점
+최종 점수: ${calculationResult.finalScore}점 (반올림 전: ${calculationResult.rawScore}점)
 평가 등급: ${calculationResult.level_text}`;
 
             // 클립보드에 복사
