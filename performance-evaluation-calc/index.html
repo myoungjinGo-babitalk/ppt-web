@@ -561,7 +561,7 @@
             document.getElementById('deployBasis').innerHTML =
                 `<strong>판정 근거:</strong> ${level === 'senior' ? '시니어' : '미들'} 기준 핫픽스율 ${deployRange} → ${deployScore}점`;
 
-            document.getElementById('finalScore').textContent = finalScore.toFixed(1);
+            document.getElementById('finalScore').textContent = Math.round(finalScore);
             document.getElementById('finalLevel').textContent = level_text;
 
             // 결과 데이터 저장
@@ -576,7 +576,7 @@
                 deployScore,
                 deployRange,
                 hotfixRate: hotfixRate.toFixed(1),
-                finalScore: finalScore.toFixed(1),
+                finalScore: Math.round(finalScore),
                 level_text,
                 levelGroup: level === 'senior' ? '시니어' : '미들'
             };
