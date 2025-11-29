@@ -593,20 +593,15 @@
         function copyResults() {
             if (!calculationResult) return;
 
-            const text = `📊 개발자 성과 평가 결과
-연차 그룹: ${calculationResult.level}
+            const text = `- 연차 그룹: ${calculationResult.level}
+- 최종 점수: ${calculationResult.finalScore}점 (반올림 전 ${calculationResult.rawScore}점)
+- 평가 등급: ${calculationResult.level_text}
 
-볼륨 점수 (30%): ${calculationResult.volumeScore}점 (SP/월: ${calculationResult.spPerMonth})
-- 판정 근거: ${calculationResult.volumeRange} SP/월 → ${calculationResult.volumeScore}점
+볼륨 점수 (30%): ${calculationResult.volumeScore}점 — SP/월 ${calculationResult.spPerMonth} (기준: ${calculationResult.volumeRange})
 
-완성도 점수 (30%): ${calculationResult.qualityScore}점 (버그율: ${calculationResult.bugRate}%)
-- 판정 근거: ${calculationResult.levelGroup} 기준 버그율 ${calculationResult.qualityRange} → ${calculationResult.qualityScore}점
+완성도 점수 (30%): ${calculationResult.qualityScore}점 — 버그율 ${calculationResult.bugRate}% (기준: ${calculationResult.qualityRange})
 
-배포 점수 (40%): ${calculationResult.deployScore}점 (핫픽스율: ${calculationResult.hotfixRate}%)
-- 판정 근거: ${calculationResult.levelGroup} 기준 핫픽스율 ${calculationResult.deployRange} → ${calculationResult.deployScore}점
-
-최종 점수: ${calculationResult.finalScore}점 (반올림 전: ${calculationResult.rawScore}점)
-평가 등급: ${calculationResult.level_text}`;
+배포 점수 (40%): ${calculationResult.deployScore}점 — 핫픽스율 ${calculationResult.hotfixRate}% (기준: ${calculationResult.deployRange})`;
 
             // 클립보드에 복사
             navigator.clipboard.writeText(text).then(() => {
